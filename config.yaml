@@ -1,0 +1,95 @@
+# =============================================================================
+# Efficient Taiwan ERA5 -> Zarr pipeline configuration
+# Single source of truth for every script under scripts/.
+# Edit this file; the scripts read it. Nothing else needs changing.
+# =============================================================================
+
+region:
+  name: taiwan
+  # CDS "area" is [North, West, South, East] in degrees.
+  # Must be on the 0.25-degree grid. The box below is 41 x 41 grid points
+  # (10 deg x 10 deg @ 0.25 deg), centred on Taiwan (~23.5 N, 121 E).
+  area: [28.5, 116.0, 18.5, 126.0]
+  resolution: 0.25          # native ERA5 grid spacing (deg)
+  expected_shape: [41, 41]  # [lat, lon] sanity check
+
+time:
+  # Keep this small for a first end-to-end test, then widen.
+  # A single month (~744 hourly steps) is plenty to exercise every benchmark.
+  years:  ["2020"]
+  months: ["01"]            # e.g. ["01","02", ... ,"12"] for a full year
+  days:   "all"             # "all" -> 01..31, or an explicit list
+  hours:  "all"             # "all" -> 00:00..23:00, or e.g. ["00:00","06:00","12:00","18:00"]
+
+variables:
+  # Surface / single-level fields (CDS long names).
+  single_levels:
+    - "10m_u_component_of_wind"
+    - "10m_v_component_of_wind"
+    - "2m_temperature"
+    - "mean_sea_level_pressure"
+    - "total_precipitation"
+  # Pressure-level fields. Each (variable x level) becomes its own 3-D channel
+  # (e.g. z500, t850), matching WeatherBench2 / FourCastNet conventions.
+  pressure_levels:
+    levels: [1000, 850, 700, 500, 250]
+    variables:
+      - "geopotential"
+      - "temperature"
+      - "u_component_of_wind"
+      - "v_component_of_wind"
+      - "specific_humidity"
+
+download:
+  product_type: "reanalysis"
+  data_format: "netcdf"        # "netcdf" or "grib"
+  download_format: "unarchived"
+  raw_dir: "data/raw"
+  # Each (year, month) is one CDS request. Requests run concurrently to hide
+  # the CDS queue latency -- this is the parallel-I/O contribution.
+  max_concurrent_requests: 4
+
+zarr:
+  out_dir: "data/zarr"
+  # Convert 4-D (time, level, lat, lon) pressure variables into flat 3-D
+  # (time, lat, lon) channels named like z500, t850. Keeps every array 3-D so
+  # the (time, lat, lon) chunking discussion applies uniformly.
+  flatten_levels: true
+
+  # Chunking strategies, given as (time, lat, lon). -1 means "the full dimension".
+  chunking_strategies:
+    full_field:    {time: 1,   lat: 41, lon: 41}   # 1 timestep/chunk  (spatial-field ML)
+    daily:         {time: 24,  lat: 41, lon: 41}   # 1 day/chunk
+    weekly:        {time: 168, lat: 41, lon: 41}   # 1 week/chunk
+    monthly:       {time: 720, lat: 41, lon: 41}   # ~1 month/chunk
+    spatial_block: {time: 24,  lat: 16, lon: 16}   # space-tiled
+    timeseries:    {time: -1,  lat: 1,  lon: 1}    # full time series/point (LSTM)
+
+  # Compression codecs (numcodecs).
+  codecs:
+    none:        {id: "none"}
+    blosc_lz4:   {id: "blosc", cname: "lz4",  clevel: 5, shuffle: "shuffle"}
+    blosc_zstd3: {id: "blosc", cname: "zstd", clevel: 3, shuffle: "shuffle"}
+    blosc_zstd5: {id: "blosc", cname: "zstd", clevel: 5, shuffle: "shuffle"}
+    blosc_zstd9: {id: "blosc", cname: "zstd", clevel: 9, shuffle: "bitshuffle"}
+    zstd5:       {id: "zstd",  level: 5}
+    gzip5:       {id: "gzip",  level: 5}
+
+  # The "production" dataset that scripts/03 writes for download/distribution.
+  default_chunking: "full_field"
+  default_codec: "blosc_zstd5"
+
+benchmark:
+  results_dir: "results"
+  seed: 1234
+  dataloader:
+    batch_size: 32
+    num_batches: 40
+    window: 2                      # input frame t + target frame t+1
+    num_workers_grid: [0, 1, 2, 4, 8]
+  ddp:
+    batch_size: 32
+    steps: 100
+    warmup_steps: 10
+    model_channels: 64
+    num_workers: 4

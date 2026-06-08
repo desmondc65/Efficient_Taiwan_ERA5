@@ -1,0 +1,17 @@
+# data + results artifacts
+data/
+results/
+*.zarr/
+*.nc
+*.zip
+
+# credentials
+.cdsapirc
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+*.pdf

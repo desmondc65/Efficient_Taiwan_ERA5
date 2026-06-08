@@ -1,0 +1,6 @@
+# PyTorch is only needed for the DataLoader (06) and DDP (07) benchmarks.
+# Install the build that matches your CUDA. For the RTX 3090 / recent CUDA:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+# CPU-only smoke test:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch>=2.2

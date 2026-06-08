@@ -1,0 +1,14 @@
+# Core pipeline (no GPU / PyTorch needed for download + zarr + storage/codec/chunking benchmarks).
+# zarr is pinned < 3 for the stable numcodecs Blosc encoding API used throughout.
+xarray>=2024.3.0
+zarr>=2.16,<3
+numcodecs>=0.12.1
+dask>=2024.3.0
+netCDF4>=1.6.5
+cdsapi>=0.7.4
+pyyaml>=6.0
+pandas>=2.0
+numpy>=1.24,<2.1
+matplotlib>=3.7
+tqdm>=4.66
+psutil>=5.9
