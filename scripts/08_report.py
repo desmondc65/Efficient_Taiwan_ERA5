@@ -98,6 +98,19 @@ def main() -> int:
                               values="samples_per_s", aggfunc="max")
         print(piv.to_string())
 
+    ll = _load(rd, "lowres_loader", latest=False)
+    if ll is not None:
+        _section("RELEASED DATASET  -- native-layout DataLoader (LowRes Zarr)")
+        cols = [c for c in ["access", "num_workers", "batch_size", "n_frames",
+                            "samples_per_s", "eff_mb_per_s", "phys_mb_per_s",
+                            "amp_factor"] if c in ll.columns]
+        srt = [c for c in ["access", "num_workers"] if c in ll.columns]
+        print(ll[cols].sort_values(srt).to_string(index=False))
+        print("\n  Native chunking (1326,3,28,16): one random frame reads ~3.6 GB"
+              " (amp ~1326x) -> random-access loading is I/O-bound.")
+        print("  Contrast: the rechunked full_field store reaches 453 samples/s"
+              " (8 workers) above -- a one-time rechunk is essential.")
+
     dp = _latest_per(_load(rd, "ddp", latest=False), "world_size")
     if dp is not None:
         _section("DDP  -- strong scaling")
