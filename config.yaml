@@ -11,13 +11,12 @@ region:
   # (10 deg x 10 deg @ 0.25 deg), centred on Taiwan (~23.5 N, 121 E).
   area: [28.5, 116.0, 18.5, 126.0]
   resolution: 0.25          # native ERA5 grid spacing (deg)
-  expected_shape: [41, 41]  # [lat, lon] sanity check
+  expected_shape: [224, 128]  # [lat, lon] sanity check (StormCast LowRes Taiwan grid)
 
 time:
-  # Keep this small for a first end-to-end test, then widen.
-  # A single month (~744 hourly steps) is plenty to exercise every benchmark.
-  years:  ["2020"]
-  months: ["01"]            # e.g. ["01","02", ... ,"12"] for a full year
+  # Last 5 complete calendar years of hourly ERA5 (2021-2025) for the Taiwan box.
+  years:  ["2021", "2022", "2023", "2024", "2025"]
+  months: ["01","02","03","04","05","06","07","08","09","10","11","12"]
   days:   "all"             # "all" -> 01..31, or an explicit list
   hours:  "all"             # "all" -> 00:00..23:00, or e.g. ["00:00","06:00","12:00","18:00"]
 
@@ -57,12 +56,13 @@ zarr:
   flatten_levels: true
 
   # Chunking strategies, given as (time, lat, lon). -1 means "the full dimension".
+  # Grid is 224 x 128, so full-field strategies use -1 for the whole spatial field.
   chunking_strategies:
-    full_field:    {time: 1,   lat: 41, lon: 41}   # 1 timestep/chunk  (spatial-field ML)
-    daily:         {time: 24,  lat: 41, lon: 41}   # 1 day/chunk
-    weekly:        {time: 168, lat: 41, lon: 41}   # 1 week/chunk
-    monthly:       {time: 720, lat: 41, lon: 41}   # ~1 month/chunk
-    spatial_block: {time: 24,  lat: 16, lon: 16}   # space-tiled
+    full_field:    {time: 1,   lat: -1, lon: -1}   # 1 timestep/chunk  (spatial-field ML)
+    daily:         {time: 24,  lat: -1, lon: -1}   # 1 day/chunk
+    weekly:        {time: 168, lat: -1, lon: -1}   # 1 week/chunk
+    monthly:       {time: 720, lat: -1, lon: -1}   # ~1 month/chunk
+    spatial_block: {time: 24,  lat: 32, lon: 32}   # space-tiled
     timeseries:    {time: -1,  lat: 1,  lon: 1}    # full time series/point (LSTM)
 
   # Compression codecs (numcodecs).
