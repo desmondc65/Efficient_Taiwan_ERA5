@@ -1,5 +1,5 @@
 # Convenience targets. `make help` lists them.
-PY ?= python3
+PY ?= .venv/bin/python
 STEPS ?= 744
 
 .PHONY: help setup check synthetic download zarr bench-codecs bench-chunking \

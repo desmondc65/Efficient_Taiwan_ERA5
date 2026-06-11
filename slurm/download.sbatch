@@ -10,5 +10,6 @@
 # Submit with:  sbatch slurm/download.sbatch
 set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"
-# source ~/miniconda3/etc/profile.d/conda.sh && conda activate era5tw
-PYTHON=${PYTHON:-python3} python3 scripts/01_download_era5.py --concurrency 4
+# Activate your env here, e.g.:  source .venv/bin/activate
+PY=${PYTHON:-.venv/bin/python}
+$PY scripts/01_download_era5.py --concurrency 4

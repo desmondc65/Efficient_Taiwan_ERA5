@@ -9,15 +9,15 @@
 #
 # Multi-node DDP benchmark over the Taiwan ERA5 Zarr store.
 # Submit with:  sbatch slurm/ddp_multinode.sbatch
-# Adjust the SBATCH directives + module/conda lines for your cluster.
+# Adjust the SBATCH directives + module/venv lines for your cluster.
 
 set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"
 
 # --- environment (edit for your cluster) ---
 # module load cuda/12.4
-# source ~/miniconda3/etc/profile.d/conda.sh && conda activate era5tw
-PY=${PYTHON:-python3}
+# Activate your env here, e.g.:  source .venv/bin/activate
+PY=${PYTHON:-.venv/bin/python}
 
 GPUS_PER_NODE=${SLURM_GPUS_PER_NODE:-4}
 NNODES=$SLURM_NNODES
@@ -30,7 +30,7 @@ echo "nodes=$NNODES gpus_per_node=$GPUS_PER_NODE master=$MASTER_ADDR"
 
 # One torchrun per node (ntasks-per-node=1); torchrun spawns GPUS_PER_NODE workers.
 srun --kill-on-bad-exit=1 bash -c "
-  torchrun \
+  $PY -m torch.distributed.run \
     --nnodes=$NNODES \
     --nproc_per_node=$GPUS_PER_NODE \
     --node_rank=\$SLURM_NODEID \

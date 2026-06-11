@@ -7,7 +7,7 @@
 #
 set -euo pipefail
 cd "$(dirname "$0")"
-PY=${PYTHON:-python3}
+PY=${PYTHON:-.venv/bin/python}
 CHUNKING=${CHUNKING:-}
 ARGS=()
 [ -n "$CHUNKING" ] && ARGS+=(--chunking "$CHUNKING")
@@ -25,7 +25,7 @@ for ws in "${SIZES[@]}"; do
     echo "skip world_size=$ws (> $MAXGPU GPUs)"; continue
   fi
   echo "### DDP world_size=$ws"
-  torchrun --standalone --nproc_per_node="$ws" scripts/07_bench_ddp.py "${ARGS[@]}"
+  $PY -m torch.distributed.run --standalone --nproc_per_node="$ws" scripts/07_bench_ddp.py "${ARGS[@]}"
 done
 
 $PY scripts/08_report.py

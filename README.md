@@ -32,9 +32,10 @@ All scripts append metrics to `results/<name>.csv` and `results/<name>.jsonl`
 ## Quick start (no key needed)
 
 ```bash
-# 1. install core deps (conda recommended)
-conda env create -f environment.yml && conda activate era5tw
-#   or:  python -m pip install -r requirements.txt
+# 1. install core deps into a venv (run_all.sh defaults to ./.venv)
+python3 -m venv .venv && source .venv/bin/activate
+python -m pip install -r requirements.txt
+#   or with conda:  conda env create -f environment.yml && conda activate era5tw
 
 # 2. run the whole thing on synthetic data
 ./run_all.sh
