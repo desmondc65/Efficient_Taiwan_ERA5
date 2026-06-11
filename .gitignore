@@ -1,12 +1,14 @@
 # data + results artifacts
 data/
 results/
+logs/
 *.zarr/
 *.nc
 *.zip
 
 # credentials
 .cdsapirc
+.env
 
 # python
 __pycache__/
@@ -14,4 +16,11 @@ __pycache__/
 .venv/
 venv/
 .ipynb_checkpoints/
+
+# LaTeX / PDF build artifacts -- but keep the paper's vector figures
 *.pdf
+*.aux
+*.out
+*.synctex.gz
+padp-final-templates/*.log
+!padp-final-templates/figures/*.pdf
