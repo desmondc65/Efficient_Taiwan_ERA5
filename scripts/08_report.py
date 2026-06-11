@@ -135,6 +135,29 @@ def main() -> int:
     return 0
 
 
+# Publication style: IEEE single-column width (3.45 in), caption-carried titles,
+# embedded TrueType fonts, and both raster (png) and vector (pdf) outputs.
+_RC = {
+    "figure.dpi": 300, "savefig.dpi": 300,
+    "font.size": 8, "axes.labelsize": 8,
+    "xtick.labelsize": 7, "ytick.labelsize": 7, "legend.fontsize": 7,
+    "axes.spines.top": False, "axes.spines.right": False,
+    "axes.grid": True, "grid.alpha": 0.30, "grid.linestyle": ":",
+    "legend.frameon": False, "pdf.fonttype": 42, "ps.fonttype": 42,
+}
+_COL_W = 3.45  # inches
+
+
+def _fmt(v):
+    """Compact bar label: 170.6 -> '171', 7.4 -> '7.4', 0.032 -> '0.03'."""
+    return f"{v:.0f}" if v >= 10 else (f"{v:.1f}" if v >= 1 else f"{v:.2f}")
+
+
+def _save(fig, out, name):
+    fig.savefig(out / f"{name}.png", bbox_inches="tight")
+    fig.savefig(out / f"{name}.pdf", bbox_inches="tight")
+
+
 def _make_plots(rd, cd, ck, dlo, dp):
     try:
         import matplotlib
@@ -143,50 +166,131 @@ def _make_plots(rd, cd, ck, dlo, dp):
     except Exception as e:
         print(f"[plots] matplotlib unavailable: {e}")
         return
+    plt.rcParams.update(_RC)
     out = rd / "plots"
     out.mkdir(parents=True, exist_ok=True)
 
     if cd is not None:
-        fig, ax = plt.subplots(figsize=(7, 4))
-        ax.scatter(cd["compression_ratio"], cd["full_read_mb_per_s"])
+        # Codec frontier: compression ratio vs random-frame latency (the
+        # training-relevant read). Lower-right = better.
+        fig, ax = plt.subplots(figsize=(_COL_W, 2.1))
+        ax.scatter(cd["compression_ratio"], cd["rand_frame_ms"],
+                   s=22, color="#1f77b4", zorder=3)
+        best = cd[cd["codec"] == "blosc_zstd5"]
+        if len(best):
+            ax.scatter(best["compression_ratio"], best["rand_frame_ms"],
+                       s=60, facecolors="none", edgecolors="#d62728",
+                       linewidths=1.2, zorder=4)
+        off = {"blosc_zstd3": (-2, 7), "blosc_zstd5": (5, -9), "gzip5": (5, -2),
+               "blosc_zstd9": (-12, 7)}
         for _, r in cd.iterrows():
-            ax.annotate(r["codec"], (r["compression_ratio"], r["full_read_mb_per_s"]),
-                        fontsize=8)
-        ax.set_xlabel("compression ratio (higher=smaller)")
-        ax.set_ylabel("full read MB/s (higher=faster)")
-        ax.set_title("Codec trade-off: size vs read speed")
-        fig.tight_layout(); fig.savefig(out / "codecs.png", dpi=120); plt.close(fig)
+            ax.annotate(r["codec"], (r["compression_ratio"], r["rand_frame_ms"]),
+                        textcoords="offset points",
+                        xytext=off.get(r["codec"], (4, 3)), fontsize=6.5)
+        ax.set_xlabel("compression ratio (higher = smaller store)")
+        ax.set_ylabel("random-frame read (ms)")
+        ax.set_xlim(0.93, 2.12)
+        _save(fig, out, "codecs"); plt.close(fig)
 
     if ck is not None:
-        fig, ax = plt.subplots(figsize=(8, 4))
+        # Two panels sharing x: (a) throughput of both access patterns (log),
+        # (b) lossless compression ratio. CSV rounds tiny rates to 0 -- recover
+        # them from the per-read latency so every bar is drawable.
+        f_ps = [(r["field_per_s"] if r["field_per_s"] > 0 else 1e3 / r["field_read_ms"])
+                for _, r in ck.iterrows()]
+        s_ps = [(r["series_per_s"] if r["series_per_s"] > 0 else 1e3 / r["series_read_ms"])
+                for _, r in ck.iterrows()]
+        labels = [c.replace("_", "\n").replace("timeseries", "time\nseries")
+                  for c in ck["chunking"]]
         x = range(len(ck))
-        ax.bar([i - 0.2 for i in x], ck["field_per_s"], width=0.4, label="full-field/s")
-        ax.bar([i + 0.2 for i in x], ck["series_per_s"], width=0.4, label="point-series/s")
-        ax.set_yscale("log"); ax.set_xticks(list(x)); ax.set_xticklabels(ck["chunking"], rotation=30)
-        ax.set_ylabel("reads/s (log)"); ax.legend(); ax.set_title("Chunking: access-pattern trade-off")
-        fig.tight_layout(); fig.savefig(out / "chunking.png", dpi=120); plt.close(fig)
+        fig, (a, b) = plt.subplots(
+            2, 1, figsize=(_COL_W, 3.3), sharex=True,
+            gridspec_kw={"height_ratios": [2.0, 1.0], "hspace": 0.12})
+        a.bar([i - 0.2 for i in x], f_ps, width=0.4,
+              label="random full field", color="#1f77b4")
+        a.bar([i + 0.2 for i in x], s_ps, width=0.4,
+              label="random point series", color="#ff7f0e")
+        for i, (fv, sv) in enumerate(zip(f_ps, s_ps)):
+            a.annotate(_fmt(fv), (i - 0.2, fv), ha="center", va="bottom", fontsize=6)
+            a.annotate(_fmt(sv), (i + 0.2, sv), ha="center", va="bottom", fontsize=6)
+        a.set_yscale("log"); a.set_ylim(0.01, 2e3)
+        a.set_ylabel("reads/s (log)")
+        a.legend(ncol=2, loc="upper center")
+        b.bar(list(x), ck["compression_ratio"], width=0.55, color="#2ca02c")
+        for i, v in enumerate(ck["compression_ratio"]):
+            b.annotate(f"{v:.2f}", (i, v), ha="center", va="bottom", fontsize=6)
+        b.set_ylim(0, 10.4)
+        b.set_ylabel("compression $\\times$")
+        b.set_xticks(list(x)); b.set_xticklabels(labels)
+        _save(fig, out, "chunking"); plt.close(fig)
 
     if dlo is not None:
-        fig, ax = plt.subplots(figsize=(7, 4))
-        for name, g in dlo.groupby("chunking"):
+        # Worker scaling per layout (log y so all layouts' slopes are visible),
+        # with a linear-scaling reference anchored at full_field's 1-worker rate.
+        fig, ax = plt.subplots(figsize=(_COL_W, 2.3))
+        order = {"full_field": 0, "daily": 1, "weekly": 2}
+        for name, g in sorted(dlo.groupby("chunking"),
+                              key=lambda kv: order.get(kv[0], 9)):
             g = g.sort_values("num_workers")
-            ax.plot(g["num_workers"], g["samples_per_s"], marker="o", label=name)
-        ax.set_xlabel("num_workers"); ax.set_ylabel("samples/s")
-        ax.set_title("DataLoader worker scaling"); ax.legend()
-        fig.tight_layout(); fig.savefig(out / "dataloader.png", dpi=120); plt.close(fig)
+            ax.plot(g["num_workers"], g["samples_per_s"], marker="o",
+                    ms=3.5, label=name)
+            w0 = g[g["num_workers"] == 0]["samples_per_s"]
+            wmax = g.iloc[-1]
+            if len(w0) and w0.iloc[0] > 0:
+                ax.annotate(f"{wmax['samples_per_s'] / w0.iloc[0]:.1f}x",
+                            (wmax["num_workers"], wmax["samples_per_s"]),
+                            textcoords="offset points", xytext=(5, -2), fontsize=6.5)
+        ff = dlo[dlo["chunking"] == "full_field"].sort_values("num_workers")
+        ff1 = ff[ff["num_workers"] == 1]["samples_per_s"]
+        if len(ff1):
+            ws = [w for w in ff["num_workers"] if w >= 1]
+            ax.plot(ws, [ff1.iloc[0] * w for w in ws], "--", lw=0.9,
+                    color="0.5", label="linear from 1 worker")
+        ax.set_yscale("log")
+        ax.set_xticks(sorted(dlo["num_workers"].unique()))
+        ax.set_xlabel("DataLoader workers")
+        ax.set_ylabel("samples/s (log)")
+        ax.legend(loc="lower right")
+        _save(fig, out, "dataloader"); plt.close(fig)
 
     if dp is not None and "world_size" in dp.columns and len(dp) > 1:
-        fig, ax = plt.subplots(figsize=(6, 4))
+        # (a) measured vs ideal throughput with per-point efficiency;
+        # (b) per-step time split: blocked-on-data vs compute.
         d = dp.sort_values("world_size")
-        ax.plot(d["world_size"], d["global_samples_per_s"], marker="o", label="measured")
         base = d.iloc[0]
-        ideal = [base["global_samples_per_s"] / base["world_size"] * w for w in d["world_size"]]
-        ax.plot(d["world_size"], ideal, "--", label="ideal linear")
-        ax.set_xlabel("world_size (GPUs)"); ax.set_ylabel("global samples/s")
-        ax.set_title("DDP strong scaling"); ax.legend()
-        fig.tight_layout(); fig.savefig(out / "ddp_scaling.png", dpi=120); plt.close(fig)
+        fig, (a, b) = plt.subplots(
+            2, 1, figsize=(_COL_W, 3.4),
+            gridspec_kw={"height_ratios": [1.6, 1.0], "hspace": 0.42})
+        ideal = [base["global_samples_per_s"] / base["world_size"] * w
+                 for w in d["world_size"]]
+        a.plot(d["world_size"], ideal, "--", color="0.5", lw=0.9, label="ideal linear")
+        a.plot(d["world_size"], d["global_samples_per_s"], marker="o", ms=4,
+               color="#1f77b4", label="measured")
+        for w, s, i in zip(d["world_size"], d["global_samples_per_s"], ideal):
+            a.annotate(f"{s / i * 100:.0f}%", (w, s),
+                       textcoords="offset points", xytext=(6, -9), fontsize=6.5)
+        a.set_xticks(list(d["world_size"]))
+        a.set_xlabel("GPUs (world size)")
+        a.set_ylabel("global samples/s")
+        a.legend(loc="upper left")
+        if {"data_s", "compute_s", "steps"}.issubset(d.columns):
+            ms_data = d["data_s"] / d["steps"] * 1e3
+            ms_comp = d["compute_s"] / d["steps"] * 1e3
+            xs = list(d["world_size"])
+            b.bar(xs, ms_data, width=0.5, label="blocked on data", color="#ff7f0e")
+            b.bar(xs, ms_comp, width=0.5, bottom=ms_data, label="compute",
+                  color="#1f77b4")
+            for w, md, mc, fr in zip(xs, ms_data, ms_comp, d["data_time_frac"]):
+                b.annotate(f"{fr * 100:.0f}%", (w, md / 2), ha="center",
+                           va="center", fontsize=6.5, color="white")
+            b.set_xticks(xs)
+            b.set_ylim(0, (ms_data + ms_comp).max() * 1.35)
+            b.set_xlabel("GPUs (world size)")
+            b.set_ylabel("ms / step (rank 0)")
+            b.legend(ncol=2, loc="upper left")
+        _save(fig, out, "ddp_scaling"); plt.close(fig)
 
-    print(f"[plots] wrote PNGs to {out}")
+    print(f"[plots] wrote PNG+PDF figures to {out}")
 
 
 if __name__ == "__main__":
