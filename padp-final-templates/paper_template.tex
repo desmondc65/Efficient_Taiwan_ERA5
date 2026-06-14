@@ -25,7 +25,7 @@
 % always compiles.
 \IfFileExists{CJKutf8.sty}{%
   \usepackage{CJKutf8}%
-  \newcommand{\cn}[1]{\begin{CJK}{UTF8}{bsmi}#1\end{CJK}}%
+  \newcommand{\cn}[1]{\begin{CJK}{UTF8}{bsmi}##1\end{CJK}}%
 }{\newcommand{\cn}[1]{}}
 
 % --- page-budget check: records where the main body + references end.
@@ -54,7 +54,8 @@ Data-Loading Trade-offs for Regional Weather-ML Training\\
 
 \author{%
 \IEEEauthorblockN{\cn{鍾鎮嶸}~(R13944064)\qquad\cn{許博堯}~(B12901026)}
-\IEEEauthorblockA{Team 46 \quad\textbullet\quad National Taiwan University}%
+\IEEEauthorblockA{Team 46\\
+{\footnotesize\href{https://github.com/desmondc65/Efficient_Taiwan_ERA5}{Code (GitHub)}~\quad\textbullet\quad~\href{https://drive.google.com/drive/folders/1QEMg1qwU_Q34a9YN-VlyJhQIvSiUIZ3p}{Dataset (Google Drive)}}}%
 }
 
 \maketitle
@@ -188,7 +189,8 @@ applies a byte-\emph{shuffle} filter before LZ4 or Zstd.
 \textbf{Dataset.} Our dataset is ERA5 obtained from the Copernicus Climate
 Data Store (CDS) and regridded to a StormCast-style ``LowRes'' regional grid:
 24 channels (surface \texttt{mslp}, \texttt{t2m}, \texttt{u10}, \texttt{v10},
-plus \texttt{q,t,u,v,z} at 1000/850/500/250\,hPa) on a $224\times128$
+plus \texttt{q,t,u,v,z} at 1000/850/500/250\,hPa; full list in
+Appendix~\ref{app:vars}) on a $224\times128$
 curvilinear grid covering a $4.0^\circ\times2.5^\circ$ Taiwan box at
 $\approx$2.0\,km spacing, hourly from 2019-08 to 2022-12: a 21\,216-step
 training split (2019-08 to 2021-12) and an 8\,760-step validation split
@@ -550,12 +552,16 @@ The most immediately reusable output of this work is the dataset itself: the
 channel-selected, and analysis-ready. Reassembling it from the CDS means
 hours-to-days of queued, failure-prone requests behind a multi-terabyte
 global archive; downloading it is a one-time 9.7--44\,GB transfer (layout
-dependent), after which a regional StormCast/CorrDiff-style model trains on
-it out of the box in the \texttt{full\_field} layout. The release includes
-the Zarr store, the full benchmark/rechunking toolkit, per-result
-hardware fingerprints, and every metric row behind the tables and figures in
-this paper.\footnote{Download link and checksums are published in the project
-repository README alongside the code, configuration, and raw metric logs.}
+dependent). It provides raw, analysis-ready fields for all 24 atmospheric
+variables (Appendix~\ref{app:vars}) --- usable directly for a range of
+regional weather and ML workloads, with the \texttt{full\_field} layout
+training out of the box. The release includes the Zarr store, the full
+benchmark/rechunking toolkit, per-result hardware fingerprints, and every
+metric row behind the tables and figures in this
+paper.\footnote{Dataset download:
+\url{https://drive.google.com/drive/folders/1QEMg1qwU_Q34a9YN-VlyJhQIvSiUIZ3p}.
+Code, configuration, and checksums:
+\url{https://github.com/desmondc65/Efficient_Taiwan_ERA5}.}
 
 %------------------------------------------------------------------------------
 \section{Conclusion}
@@ -565,7 +571,7 @@ downstream: the chunk shape. On identical data it moves lossless compression
 from $1.88\times$ to $8.47\times$, swings the two training-relevant access
 patterns by $5{,}300\times$ and $430\times$ in opposite directions, and
 separates a store that feeds 453 samples/s from one that starves at 0.03.
-For StormCast-style training, \texttt{full\_field} chunks scale to $6.1\times$
+For full-field training reads, \texttt{full\_field} chunks scale to $6.1\times$
 over 8 loader workers and keep three DDP GPUs at 79\% strong-scaling
 efficiency --- yet the pipeline remains $\approx$80\% data-bound, so the next
 dollar belongs to storage, not a fourth GPU. We release the analysis-ready
@@ -608,6 +614,39 @@ no.~12, 2020.
 %  APPENDIX (Category A: optional -- extra data and reproduction details)
 %==============================================================================
 \appendices
+
+\section{Available Variables}\label{app:vars}
+The released store provides 24 ERA5 channels as raw, analysis-ready
+\texttt{float32} arrays on the shared $224\times128$ Taiwan grid: four
+single-level (surface) fields and five upper-air fields sampled at four
+pressure levels each. All channels are stacked along a single
+\texttt{channel} axis in the order below.
+\begin{center}\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+short name & variable & level(s) & unit \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Surface / single-level}}\\
+\texttt{mslp} & Mean sea-level pressure & surface & Pa \\
+\texttt{t2m}  & 2\,m temperature        & surface & K \\
+\texttt{u10}  & 10\,m eastward wind     & surface & m\,s$^{-1}$ \\
+\texttt{v10}  & 10\,m northward wind    & surface & m\,s$^{-1}$ \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Upper-air (each at 1000 / 850 / 500 / 250\,hPa)}}\\
+\texttt{q\{lev\}} & Specific humidity & 1000/850/500/250 & kg\,kg$^{-1}$ \\
+\texttt{t\{lev\}} & Temperature       & 1000/850/500/250 & K \\
+\texttt{u\{lev\}} & Eastward wind     & 1000/850/500/250 & m\,s$^{-1}$ \\
+\texttt{v\{lev\}} & Northward wind    & 1000/850/500/250 & m\,s$^{-1}$ \\
+\texttt{z\{lev\}} & Geopotential      & 1000/850/500/250 & m$^2$\,s$^{-2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent Channel order: \texttt{mslp, t2m, u10, v10}, then \texttt{q, t, u,
+v, z} each at 1000/850/500/250\,hPa (i.e.\ \texttt{q1000}, \texttt{q850},
+\dots, \texttt{z250}), 24 channels in total. Latitude spans
+$21.6^\circ$--$25.6^\circ$N and longitude $119.75^\circ$--$122.25^\circ$E,
+hourly.
 
 \section{Reproduction}
 From the repository root (\texttt{.venv} active), the full benchmark is:

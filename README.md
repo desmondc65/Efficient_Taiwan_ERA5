@@ -17,8 +17,14 @@ multi-worker data loading, and multi-node multi-GPU (DDP) throughput.
 A ready-to-train **3.42-year Taiwan ERA5 Zarr** (`data/zarr/taiwan_era5_full.zarr`,
 hourly 2019-08 → 2022-12, 24 channels on a ~2 km 224×128 grid, `full_field`
 chunking + lossless blosc-zstd5, 43.3 GB) is provided so you can skip the slow CDS
-retrieval entirely. **See [`DATASET.md`](DATASET.md)** for the full contents and
-copy-paste Python recipes to open it and extract variables.
+retrieval entirely.
+
+**⬇ Download (Google Drive):**
+<https://drive.google.com/drive/folders/1QEMg1qwU_Q34a9YN-VlyJhQIvSiUIZ3p>
+
+Unzip the archive into `data/zarr/`, then open it directly — **see
+[`DATASET.md`](DATASET.md)** for the full contents and copy-paste Python recipes
+to open it and extract variables.
 
 ```bash
 python scripts/91_build_full_zarr.py --src <LowRes>   # (re)build the full store
@@ -124,7 +130,7 @@ results/                 # metrics CSV/JSONL + plots (gitignored)
 
 ---
 
-## Distributed/parallel contributions (for the report)
+## Distributed/parallel contributions 
 
 - **Parallel I/O download**: `01` issues CDS requests concurrently
   (`max_concurrent_requests`), hiding the slow CDS queue; aggregate vs per-request
@@ -142,4 +148,6 @@ results/                 # metrics CSV/JSONL + plots (gitignored)
 - The new CDS sometimes returns a `.zip` even for `unarchived`; the loader handles
   both transparently.
 
-scp -P 2027 davidlcs@140.112.176.245:/home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/zarr/taiwan_era5_2019_08_01_2020_12_31.zip .
+## Links
+- **Dataset:** <https://drive.google.com/drive/folders/1QEMg1qwU_Q34a9YN-VlyJhQIvSiUIZ3p>
+- **Code:** <https://github.com/desmondc65/Efficient_Taiwan_ERA5>
