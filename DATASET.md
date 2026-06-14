@@ -16,6 +16,10 @@ directly — no CDS queue, no acquisition pipeline.
 > Built with `scripts/91_build_full_zarr.py`. The chunking is chosen for the
 > training access pattern (one random full field at a time); see *Layout notes*.
 
+**⬇ Download (Google Drive):**
+<https://drive.google.com/drive/folders/1QEMg1qwU_Q34a9YN-VlyJhQIvSiUIZ3p> —
+unzip into `data/zarr/`, then use the recipes below.
+
 ---
 
 ## What's in the store
