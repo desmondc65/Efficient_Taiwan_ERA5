@@ -12,6 +12,20 @@ multi-worker data loading, and multi-node multi-GPU (DDP) throughput.
 
 ---
 
+## Open dataset (download instead of the CDS)
+
+A ready-to-train **3.42-year Taiwan ERA5 Zarr** (`data/zarr/taiwan_era5_full.zarr`,
+hourly 2019-08 → 2022-12, 24 channels on a ~2 km 224×128 grid, `full_field`
+chunking + lossless blosc-zstd5, 43.3 GB) is provided so you can skip the slow CDS
+retrieval entirely. **See [`DATASET.md`](DATASET.md)** for the full contents and
+copy-paste Python recipes to open it and extract variables.
+
+```bash
+python scripts/91_build_full_zarr.py --src <LowRes>   # (re)build the full store
+```
+
+---
+
 ## What each metric maps to (proposal → script)
 
 | Proposal goal | Script | Records |
