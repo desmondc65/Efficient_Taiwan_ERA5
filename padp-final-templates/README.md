@@ -29,3 +29,5 @@
 ## 問題
 
 有任何問題歡迎聯絡助教。
+
+/home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/zarr/taiwan_era5_2019_08_01_2020_12_31.zip

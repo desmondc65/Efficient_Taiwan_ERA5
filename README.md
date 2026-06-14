@@ -141,3 +141,5 @@ results/                 # metrics CSV/JSONL + plots (gitignored)
 - `zarr` is pinned `<3` for the stable numcodecs Blosc encoding path used here.
 - The new CDS sometimes returns a `.zip` even for `unarchived`; the loader handles
   both transparently.
+
+/home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/zarr/taiwan_era5_2019_08_01_2020_12_31.zip
