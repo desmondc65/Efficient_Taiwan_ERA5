@@ -142,4 +142,4 @@ results/                 # metrics CSV/JSONL + plots (gitignored)
 - The new CDS sometimes returns a `.zip` even for `unarchived`; the loader handles
   both transparently.
 
-/home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/zarr/taiwan_era5_2019_08_01_2020_12_31.zip
+scp -P 2027 davidlcs@140.112.176.245:/home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/zarr/taiwan_era5_2019_08_01_2020_12_31.zip .
