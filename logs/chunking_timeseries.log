@@ -1,0 +1,7 @@
+Loading raw ERA5 from /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/raw ...
+  24 channels, dims={'time': 744, 'lat': 224, 'lon': 128}, uncompressed=2047.9 MB, codec=blosc_zstd5
+
+[chunking] chunking=timeseries  chunk_shape=(744, 1, 1)  codec=blosc-zstd-l5-shuffle  chunks_per_var=28672  n_files=688188  zarr_mb=365.8  compression_ratio=5.598  write_s=942.1  field_read_ms=3.086e+04  field_per_s=0  field_mb_per_s=0.1  series_read_ms=5.518  series_per_s=181.2  series_mb_per_s=12.9
+
+Metrics -> /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/results/chunking.csv
+Stores kept under /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/zarr/bench (reused by 06_bench_dataloader).

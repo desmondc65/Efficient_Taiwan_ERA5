@@ -1,0 +1,35 @@
+Source: 24 channels, grid (224, 128), train T=21216 + valid T=8760
+Writing -> /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/zarr/taiwan_era5_full.zarr  (full_field chunks, blosc_zstd5)
+
+  block  1 t[0:1326] of split-T=21216  read+write  74.8s  store=  1.94 GB
+  block  2 t[1326:2652] of split-T=21216  read+write  69.4s  store=  3.85 GB
+  block  3 t[2652:3978] of split-T=21216  read+write 114.5s  store=  5.75 GB
+  block  4 t[3978:5304] of split-T=21216  read+write 118.9s  store=  7.64 GB
+  block  5 t[5304:6630] of split-T=21216  read+write 117.6s  store=  9.55 GB
+  block  6 t[6630:7956] of split-T=21216  read+write 124.9s  store= 11.47 GB
+  block  7 t[7956:9282] of split-T=21216  read+write 135.4s  store= 13.40 GB
+  block  8 t[9282:10608] of split-T=21216  read+write 119.5s  store= 15.32 GB
+  block  9 t[10608:11934] of split-T=21216  read+write 120.1s  store= 17.23 GB
+  block 10 t[11934:13260] of split-T=21216  read+write 121.3s  store= 19.13 GB
+  block 11 t[13260:14586] of split-T=21216  read+write 123.0s  store= 21.03 GB
+  block 12 t[14586:15912] of split-T=21216  read+write 121.9s  store= 22.95 GB
+  block 13 t[15912:17238] of split-T=21216  read+write 118.2s  store= 24.88 GB
+  block 14 t[17238:18564] of split-T=21216  read+write 126.2s  store= 26.82 GB
+  block 15 t[18564:19890] of split-T=21216  read+write 127.2s  store= 28.73 GB
+  block 16 t[19890:21216] of split-T=21216  read+write 114.7s  store= 30.63 GB
+  block 17 t[0:1095] of split-T=8760  read+write  80.6s  store= 32.19 GB
+  block 18 t[1095:2190] of split-T=8760  read+write  72.5s  store= 33.77 GB
+  block 19 t[2190:3285] of split-T=8760  read+write  65.0s  store= 35.34 GB
+  block 20 t[3285:4380] of split-T=8760  read+write  63.5s  store= 36.93 GB
+  block 21 t[4380:5475] of split-T=8760  read+write  70.4s  store= 38.53 GB
+  block 22 t[5475:6570] of split-T=8760  read+write  69.1s  store= 40.12 GB
+  block 23 t[6570:7665] of split-T=8760  read+write  68.5s  store= 41.70 GB
+  block 24 t[7665:8760] of split-T=8760  read+write  66.5s  store= 43.27 GB
+
+Consolidating metadata ...
+
+DONE in 81.0 min
+  store     : /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/zarr/taiwan_era5_full.zarr
+  size      : 43.27 GB (43269 MB)
+  time steps: 29976  (2019-08-01T00:00:00.000000000 .. 2022-12-31T23:00:00.000000000)
+  variables : 24  dims={'y': 224, 'x': 128, 'time': 29976}

@@ -1,0 +1,8 @@
+Loading raw ERA5 from /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/data/raw ...
+  24 channels, dims={'time': 744, 'lat': 224, 'lon': 128}, uncompressed=2047.9 MB, codec=blosc_zstd5
+
+[chunking] chunking=full_field  chunk_shape=(1, 224, 128)  codec=blosc-zstd-l5-shuffle  chunks_per_var=744  n_files=17916  zarr_mb=1,091  compression_ratio=1.877  write_s=30.23  field_read_ms=5.861  field_per_s=170.6  field_mb_per_s=469.6  series_read_ms=2,390  series_per_s=0.4  series_mb_per_s=0
+[chunking] chunking=daily  chunk_shape=(24, 224, 128)  codec=blosc-zstd-l5-shuffle  chunks_per_var=31  n_files=804  zarr_mb=596.5  compression_ratio=3.433  write_s=5.048  field_read_ms=35.29  field_per_s=28.3  field_mb_per_s=78  series_read_ms=1,278  series_per_s=0.8  series_mb_per_s=0.1
+[chunking] chunking=weekly  chunk_shape=(168, 224, 128)  codec=blosc-zstd-l5-shuffle  chunks_per_var=5  n_files=180  zarr_mb=574.5  compression_ratio=3.565  write_s=4.766  field_read_ms=136  field_per_s=7.4  field_mb_per_s=20.2  series_read_ms=960.1  series_per_s=1  series_mb_per_s=0.1
+[chunking] chunking=monthly  chunk_shape=(720, 224, 128)  codec=blosc-zstd-l5-shuffle  chunks_per_var=2  n_files=108  zarr_mb=571.4  compression_ratio=3.584  write_s=5.123  field_read_ms=1,001  field_per_s=1  field_mb_per_s=2.7  series_read_ms=1,790  series_per_s=0.6  series_mb_per_s=0
+[chunking] chunking=spatial_block  chunk_shape=(24, 32, 32)  codec=blosc-zstd-l5-shuffle  chunks_per_var=868  n_files=20892  zarr_mb=241.7  compression_ratio=8.473  write_s=35.44  field_read_ms=42.07  field_per_s=23.8  field_mb_per_s=65.4  series_read_ms=47.06  series_per_s=21.2  series_mb_per_s=1.5

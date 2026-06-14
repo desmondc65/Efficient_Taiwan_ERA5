@@ -1,0 +1,23 @@
+===== 09 native LowRes loader benchmark =====
+--- A: random, serial (workers=0) ---
+LowRes (21216, 24, 224, 128) chunks (1326, 3, 28, 16)  frame=2.75 MB
+single-frame read touches 512 chunks = 3.65 GB  (amp ~1326x)
+
+[lowres_loader] store=native_lowres  access=random  split=train  num_workers=0  batch_size=1  n_frames=2  window=2  chunk_shape=(1326, 3, 28, 16)  amp_factor=1,326  samples=2  seconds=77.95  samples_per_s=0.026  eff_mb_per_s=0.1  phys_mb_per_s=93.6
+
+Metrics -> /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/results/lowres_loader.csv
+--- B: random, parallel (workers=2) ---
+LowRes (21216, 24, 224, 128) chunks (1326, 3, 28, 16)  frame=2.75 MB
+single-frame read touches 512 chunks = 3.65 GB  (amp ~1326x)
+
+[lowres_loader] store=native_lowres  access=random  split=train  num_workers=2  batch_size=2  n_frames=6  window=2  chunk_shape=(1326, 3, 28, 16)  amp_factor=1,326  samples=6  seconds=176.7  samples_per_s=0.034  eff_mb_per_s=0.1  phys_mb_per_s=124
+
+Metrics -> /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/results/lowres_loader.csv
+--- C: sequential (chunk/cache-friendly), workers 0 and 2 ---
+LowRes (21216, 24, 224, 128) chunks (1326, 3, 28, 16)  frame=2.75 MB
+single-frame read touches 512 chunks = 3.65 GB  (amp ~1326x)
+
+[lowres_loader] store=native_lowres  access=sequential  split=train  num_workers=0  batch_size=8  n_frames=64  window=2  chunk_shape=(1326, 3, 28, 16)  amp_factor=1,326  samples=64  seconds=369.8  samples_per_s=0.173  eff_mb_per_s=0.5  phys_mb_per_s=631.6
+[lowres_loader] store=native_lowres  access=sequential  split=train  num_workers=2  batch_size=8  n_frames=64  window=2  chunk_shape=(1326, 3, 28, 16)  amp_factor=1,326  samples=64  seconds=158.6  samples_per_s=0.404  eff_mb_per_s=1.1  phys_mb_per_s=1,473
+
+Metrics -> /home3/davidlcs/Econ-Rag/Local_LLM/test_meeting/parallel/Efficient_Taiwan_ERA5/results/lowres_loader.csv
